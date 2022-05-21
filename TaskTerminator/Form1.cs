@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -19,6 +20,7 @@ namespace TaskTerminator
         }
         List<Process> processesList;
         List<Process> currentProcessesList;
+        Thread update;
 
         private void process_Add(Process process)
         {
@@ -51,6 +53,30 @@ namespace TaskTerminator
             listView.Items.Remove(listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First());
         }
 
+        private void updateListView()
+        {
+            currentProcessesList = Process.GetProcesses().ToList();
+            foreach (Process process in currentProcessesList)
+            {
+                if (!processesList.Exists(p => p.Id == process.Id))
+                {
+                    listView.Invoke(new Action(() => process_Add(process)));
+                }
+                else
+                {
+                    listView.Invoke(new Action(() => process_Update(process)));
+                }
+            }
+            foreach (Process process in processesList)
+            {
+                if (!currentProcessesList.Exists(p => p.Id == process.Id))
+                {
+                    listView.Invoke(new Action(() => process_Remove(process)));
+                }
+            }
+            processesList = new List<Process>(currentProcessesList);
+        }
+
         private void cmd(String command, bool asAdmin)
         {
             Process process = new Process();
@@ -66,34 +92,20 @@ namespace TaskTerminator
         private void Form1_Shown(object sender, EventArgs e)
         {
             processesList = Process.GetProcesses().ToList();
+            update = new Thread(updateListView);
             foreach (Process process in processesList)
             {
-                process_Add(process);
+                listView.Invoke(new Action(() => process_Add(process)));
             }
         }
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            currentProcessesList = Process.GetProcesses().ToList();
-            foreach (Process process in currentProcessesList)
+            if (!update.IsAlive)
             {
-                if (!processesList.Exists(p => p.Id == process.Id))
-                {
-                    process_Add(process);
-                }
-                else
-                {
-                    process_Update(process);
-                }
+                update = new Thread(updateListView);
+                update.Start();
             }
-            foreach (Process process in processesList)
-            {
-                if (!currentProcessesList.Exists(p => p.Id == process.Id))
-                {
-                    process_Remove(process);
-                }
-            }
-            processesList = new List<Process>(currentProcessesList);
         }
 
         private void listView_MouseClick(object sender, MouseEventArgs e)
