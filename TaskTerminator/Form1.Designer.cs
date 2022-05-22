@@ -37,14 +37,14 @@ namespace TaskTerminator
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.listView = new System.Windows.Forms.ListView();
-            this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.terminateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nameColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.statusColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.cpuColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ramColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pidColumnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.terminateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip.SuspendLayout();
             this.contextMenuStrip.SuspendLayout();
@@ -72,14 +72,16 @@ namespace TaskTerminator
             // runToolStripMenuItem
             // 
             this.runToolStripMenuItem.Name = "runToolStripMenuItem";
-            this.runToolStripMenuItem.Size = new System.Drawing.Size(95, 22);
+            this.runToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.runToolStripMenuItem.Text = "Run";
+            this.runToolStripMenuItem.Click += new System.EventHandler(this.runToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(95, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // statusStrip
             // 
@@ -107,28 +109,6 @@ namespace TaskTerminator
             this.listView.View = System.Windows.Forms.View.Details;
             this.listView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView_MouseClick);
             // 
-            // contextMenuStrip
-            // 
-            this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.stopToolStripMenuItem,
-            this.terminateToolStripMenuItem});
-            this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(181, 70);
-            // 
-            // stopToolStripMenuItem
-            // 
-            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.stopToolStripMenuItem.Text = "Stop";
-            this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
-            // 
-            // terminateToolStripMenuItem
-            // 
-            this.terminateToolStripMenuItem.Name = "terminateToolStripMenuItem";
-            this.terminateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.terminateToolStripMenuItem.Text = "Terminate";
-            this.terminateToolStripMenuItem.Click += new System.EventHandler(this.terminateToolStripMenuItem_Click);
-            // 
             // nameColumnHeader
             // 
             this.nameColumnHeader.Text = "Name";
@@ -153,6 +133,28 @@ namespace TaskTerminator
             // 
             this.pidColumnHeader.Text = "PID";
             this.pidColumnHeader.Width = 50;
+            // 
+            // contextMenuStrip
+            // 
+            this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.stopToolStripMenuItem,
+            this.terminateToolStripMenuItem});
+            this.contextMenuStrip.Name = "contextMenuStrip";
+            this.contextMenuStrip.Size = new System.Drawing.Size(127, 48);
+            // 
+            // stopToolStripMenuItem
+            // 
+            this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.stopToolStripMenuItem.Text = "Stop";
+            this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
+            // 
+            // terminateToolStripMenuItem
+            // 
+            this.terminateToolStripMenuItem.Name = "terminateToolStripMenuItem";
+            this.terminateToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.terminateToolStripMenuItem.Text = "Terminate";
+            this.terminateToolStripMenuItem.Click += new System.EventHandler(this.terminateToolStripMenuItem_Click);
             // 
             // timer
             // 

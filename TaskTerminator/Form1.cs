@@ -33,7 +33,7 @@ namespace TaskTerminator
             processInfo.SubItems.Add("");
             processInfo.SubItems.Add("");
             processInfo.SubItems.Add(process.Id.ToString());
-            if (process.MainWindowTitle != "") listView.Items.Insert(0, processInfo);
+            if (process.MainWindowHandle != IntPtr.Zero) listView.Items.Insert(0, processInfo);
             else listView.Items.Add(processInfo);
         }
 
@@ -133,6 +133,26 @@ namespace TaskTerminator
             int processId = int.Parse(processInfo.SubItems[processInfo.SubItems.Count - 1].Text);
             Process process = processesList.Find(p => p.Id == processId);
             cmd("taskkill /PID " + processId + " /T /F", true);
+        }
+
+        private void runToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Run run = new Run();
+            DialogResult result = run.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                cmd("start " + run.command, false);
+            }
+            else if (result == DialogResult.Yes)
+            {
+                cmd("start " + run.command, true);
+            }
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (update.IsAlive) update.Abort();
+            Application.Exit();
         }
     }
 }
