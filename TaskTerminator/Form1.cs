@@ -21,6 +21,10 @@ namespace TaskTerminator
         List<Process> processesList;
         List<Process> currentProcessesList;
         Thread update;
+        PerformanceCounter cpuCounter;
+        PerformanceCounter ramCounter;
+        double ramTotalMB;
+        double ramAvailableMB;
 
         private void process_Add(Process process)
         {
@@ -55,6 +59,9 @@ namespace TaskTerminator
 
         private void updateListView()
         {
+            ramAvailableMB = ramCounter.NextValue();
+            statusStrip.Items[0].Text = "CPU: " + Math.Round(cpuCounter.NextValue(), 1) + "%";
+            statusStrip.Items[1].Text = "RAM: " + Math.Round((ramTotalMB - ramAvailableMB) / ramTotalMB * 100, 1) + "%";
             currentProcessesList = Process.GetProcesses().ToList();
             foreach (Process process in currentProcessesList)
             {
@@ -77,7 +84,7 @@ namespace TaskTerminator
             processesList = new List<Process>(currentProcessesList);
         }
 
-        private void cmd(String command, bool asAdmin)
+        private String cmd(String command, bool asAdmin=false, bool waitForExit=false)
         {
             Process process = new Process();
             ProcessStartInfo processStartInfo = new ProcessStartInfo();
@@ -85,8 +92,20 @@ namespace TaskTerminator
             processStartInfo.Arguments = "/C " + command;
             processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             if (asAdmin) processStartInfo.Verb = "runas";
+            if (waitForExit)
+            {
+                processStartInfo.UseShellExecute = false;
+                processStartInfo.RedirectStandardOutput = true;
+            }
             process.StartInfo = processStartInfo;
             process.Start();
+            String output = "";
+            if (waitForExit)
+            {
+                output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+            }
+            return output;
         }
 
         private void Form1_Shown(object sender, EventArgs e)
@@ -97,6 +116,12 @@ namespace TaskTerminator
             {
                 listView.Invoke(new Action(() => process_Add(process)));
             }
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+            ramTotalMB = double.Parse(new String(cmd("wmic computersystem get totalphysicalmemory", false, true).Where(Char.IsDigit).ToArray())) / 1024 / 1024;
+            ramAvailableMB = ramCounter.NextValue();
+            statusStrip.Items.Add("CPU: " + Math.Round(cpuCounter.NextValue(), 1) + "%");
+            statusStrip.Items.Add("RAM: " + Math.Round((ramTotalMB - ramAvailableMB) / ramTotalMB * 100, 1) + "%");
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -141,7 +166,7 @@ namespace TaskTerminator
             DialogResult result = run.ShowDialog();
             if (result == DialogResult.OK)
             {
-                cmd("start " + run.command, false);
+                cmd("start " + run.command);
             }
             else if (result == DialogResult.Yes)
             {
