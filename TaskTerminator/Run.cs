@@ -29,5 +29,13 @@ namespace TaskTerminator
             command = textBox.Text;
             this.DialogResult = DialogResult.Yes;
         }
+
+        private void textBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                buttonRun_Click(sender, e);
+            }
+        }
     }
 }

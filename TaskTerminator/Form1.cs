@@ -196,5 +196,11 @@ namespace TaskTerminator
             if (update.IsAlive) update.Abort();
             Application.Exit();
         }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (update.IsAlive) update.Abort();
+            Application.Exit();
+        }
     }
 }

@@ -72,20 +72,20 @@ namespace TaskTerminator
             // runToolStripMenuItem
             // 
             this.runToolStripMenuItem.Name = "runToolStripMenuItem";
-            this.runToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.runToolStripMenuItem.Size = new System.Drawing.Size(95, 22);
             this.runToolStripMenuItem.Text = "Run";
             this.runToolStripMenuItem.Click += new System.EventHandler(this.runToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(95, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // statusStrip
             // 
-            this.statusStrip.Location = new System.Drawing.Point(0, 739);
+            this.statusStrip.Location = new System.Drawing.Point(0, 539);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(784, 22);
             this.statusStrip.TabIndex = 1;
@@ -100,10 +100,12 @@ namespace TaskTerminator
             this.ramColumnHeader,
             this.pidColumnHeader});
             this.listView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listView.FullRowSelect = true;
+            this.listView.GridLines = true;
             this.listView.HideSelection = false;
             this.listView.Location = new System.Drawing.Point(0, 24);
             this.listView.Name = "listView";
-            this.listView.Size = new System.Drawing.Size(784, 715);
+            this.listView.Size = new System.Drawing.Size(784, 515);
             this.listView.TabIndex = 2;
             this.listView.UseCompatibleStateImageBehavior = false;
             this.listView.View = System.Windows.Forms.View.Details;
@@ -117,7 +119,7 @@ namespace TaskTerminator
             // statusColumnHeader
             // 
             this.statusColumnHeader.Text = "Status";
-            this.statusColumnHeader.Width = 80;
+            this.statusColumnHeader.Width = 100;
             // 
             // cpuColumnHeader
             // 
@@ -166,7 +168,7 @@ namespace TaskTerminator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 761);
+            this.ClientSize = new System.Drawing.Size(784, 561);
             this.Controls.Add(this.listView);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.menuStrip);
@@ -175,6 +177,7 @@ namespace TaskTerminator
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TaskTerminator";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
