@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Collections.Specialized;
 
 namespace TaskTerminator
 {
@@ -20,6 +21,7 @@ namespace TaskTerminator
         }
         List<Process> processesList;
         List<Process> currentProcessesList;
+        OrderedDictionary processesCpuCounters;
         Thread update;
         PerformanceCounter cpuCounter;
         PerformanceCounter ramCounter;
@@ -29,6 +31,7 @@ namespace TaskTerminator
         private void process_Add(Process process)
         {
             String processName = process.ProcessName;
+            processesCpuCounters.Add(process.Id.ToString(), new PerformanceCounter("Process", "% Processor Time", processName));
             if (process.MainWindowTitle != "") processName = process.MainWindowTitle;
             String processStatus = "running";
             if (!process.Responding) processStatus = "not responding";
@@ -37,24 +40,37 @@ namespace TaskTerminator
             processInfo.SubItems.Add("");
             processInfo.SubItems.Add("");
             processInfo.SubItems.Add(process.Id.ToString());
-            if (process.MainWindowHandle != IntPtr.Zero) listView.Items.Insert(0, processInfo);
-            else listView.Items.Add(processInfo);
+            listView.Invoke(new Action(() =>
+            {
+                if (process.MainWindowHandle != IntPtr.Zero) listView.Items.Insert(0, processInfo);
+                else listView.Items.Add(processInfo);
+            }));
         }
 
         private void process_Update(Process process)
         {
             String processName = process.ProcessName;
+            PerformanceCounter processCpu = (PerformanceCounter)processesCpuCounters[process.Id.ToString()];
+            String processCpuUsage = Math.Round(processCpu.NextValue() / Environment.ProcessorCount, 1) + "%";
             if (process.MainWindowTitle != "") processName = process.MainWindowTitle;
             String processStatus = "running";
             if (!process.Responding) processStatus = "not responding";
-            ListViewItem processInfo = listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First();
-            if (processInfo.Text != processName) processInfo.Text = processName;
-            if (processInfo.SubItems[1].Text != processStatus) processInfo.SubItems[1].Text = processStatus;
+            listView.Invoke(new Action(() =>
+            {
+                ListViewItem processInfo = listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First();
+                if (processInfo.Text != processName) processInfo.Text = processName;
+                if (processInfo.SubItems[1].Text != processStatus) processInfo.SubItems[1].Text = processStatus;
+                if (processInfo.SubItems[2].Text != processCpuUsage) processInfo.SubItems[2].Text = processCpuUsage;
+            }));
         }
 
         private void process_Remove(Process process)
         {
-            listView.Items.Remove(listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First());
+            listView.Invoke(new Action(() =>
+            {
+                listView.Items.Remove(listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First());
+            }));
+            processesCpuCounters.Remove(process.Id.ToString());
         }
 
         private void updateListView()
@@ -67,18 +83,18 @@ namespace TaskTerminator
             {
                 if (!processesList.Exists(p => p.Id == process.Id))
                 {
-                    listView.Invoke(new Action(() => process_Add(process)));
+                    process_Add(process);
                 }
                 else
                 {
-                    listView.Invoke(new Action(() => process_Update(process)));
+                    process_Update(process);
                 }
             }
             foreach (Process process in processesList)
             {
                 if (!currentProcessesList.Exists(p => p.Id == process.Id))
                 {
-                    listView.Invoke(new Action(() => process_Remove(process)));
+                    process_Remove(process);
                 }
             }
             processesList = new List<Process>(currentProcessesList);
@@ -111,6 +127,7 @@ namespace TaskTerminator
         private void Form1_Shown(object sender, EventArgs e)
         {
             processesList = Process.GetProcesses().ToList();
+            processesCpuCounters = new OrderedDictionary();
             update = new Thread(updateListView);
             foreach (Process process in processesList)
             {
