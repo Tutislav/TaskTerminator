@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Collections.Specialized;
+using Microsoft.VisualBasic.Devices;
 
 namespace TaskTerminator
 {
@@ -21,7 +22,7 @@ namespace TaskTerminator
         }
         List<Process> processesList;
         List<Process> currentProcessesList;
-        OrderedDictionary processesCpuCounters;
+        OrderedDictionary processesCounters;
         Thread update;
         PerformanceCounter cpuCounter;
         PerformanceCounter ramCounter;
@@ -31,7 +32,7 @@ namespace TaskTerminator
         private void process_Add(Process process)
         {
             String processName = process.ProcessName;
-            processesCpuCounters.Add(process.Id.ToString(), new PerformanceCounter("Process", "% Processor Time", processName));
+            processesCounters.Add(process.Id.ToString(), new[]{ new PerformanceCounter("Process", "% Processor Time", processName), new PerformanceCounter("Process", "Working Set - Private", processName) });
             if (process.MainWindowTitle != "") processName = process.MainWindowTitle;
             String processStatus = "running";
             if (!process.Responding) processStatus = "not responding";
@@ -50,8 +51,17 @@ namespace TaskTerminator
         private void process_Update(Process process)
         {
             String processName = process.ProcessName;
-            PerformanceCounter processCpu = (PerformanceCounter)processesCpuCounters[process.Id.ToString()];
-            String processCpuUsage = Math.Round(processCpu.NextValue() / Environment.ProcessorCount, 1) + "%";
+            String processCpuUsage = "";
+            String processRamUsage = "";
+            try
+            {
+                PerformanceCounter processCpu = ((PerformanceCounter[])processesCounters[process.Id.ToString()])[0];
+                processCpuUsage = Math.Round(processCpu.NextValue() / Environment.ProcessorCount, 1) + "%";
+                PerformanceCounter processRam = ((PerformanceCounter[])processesCounters[process.Id.ToString()])[1];
+                processRamUsage = formatBytes((int)processRam.NextValue());
+            }
+            catch
+            { }
             if (process.MainWindowTitle != "") processName = process.MainWindowTitle;
             String processStatus = "running";
             if (!process.Responding) processStatus = "not responding";
@@ -60,7 +70,8 @@ namespace TaskTerminator
                 ListViewItem processInfo = listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First();
                 if (processInfo.Text != processName) processInfo.Text = processName;
                 if (processInfo.SubItems[1].Text != processStatus) processInfo.SubItems[1].Text = processStatus;
-                if (processInfo.SubItems[2].Text != processCpuUsage) processInfo.SubItems[2].Text = processCpuUsage;
+                if (processInfo.SubItems[2].Text != processCpuUsage && processCpuUsage != "") processInfo.SubItems[2].Text = processCpuUsage;
+                if (processInfo.SubItems[3].Text != processRamUsage && processRamUsage != "") processInfo.SubItems[3].Text = processRamUsage;
             }));
         }
 
@@ -70,7 +81,7 @@ namespace TaskTerminator
             {
                 listView.Items.Remove(listView.Items.Cast<ListViewItem>().Where(l => l.SubItems[l.SubItems.Count - 1].Text == process.Id.ToString()).First());
             }));
-            processesCpuCounters.Remove(process.Id.ToString());
+            processesCounters.Remove(process.Id.ToString());
         }
 
         private void updateListView()
@@ -100,6 +111,28 @@ namespace TaskTerminator
             processesList = new List<Process>(currentProcessesList);
         }
 
+        private String formatBytes(int bytes)
+        {
+            int size = bytes;
+            String unit = "B";
+            if (size > 1024)
+            {
+                size = size / 1024;
+                unit = "KB";
+                if (size > 1024)
+                {
+                    size = size / 1024;
+                    unit = "MB";
+                    if (size > 1024)
+                    {
+                        size = size / 1024;
+                        unit = "GB";
+                    }
+                }
+            }
+            return size + " " + unit;
+        }
+
         private String cmd(String command, bool asAdmin=false, bool waitForExit=false)
         {
             Process process = new Process();
@@ -127,7 +160,7 @@ namespace TaskTerminator
         private void Form1_Shown(object sender, EventArgs e)
         {
             processesList = Process.GetProcesses().ToList();
-            processesCpuCounters = new OrderedDictionary();
+            processesCounters = new OrderedDictionary();
             update = new Thread(updateListView);
             foreach (Process process in processesList)
             {
@@ -135,7 +168,8 @@ namespace TaskTerminator
             }
             cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
-            ramTotalMB = double.Parse(new String(cmd("wmic computersystem get totalphysicalmemory", false, true).Where(Char.IsDigit).ToArray())) / 1024 / 1024;
+            ComputerInfo computerInfo = new ComputerInfo();
+            ramTotalMB = computerInfo.TotalPhysicalMemory / 1024 / 1024;
             ramAvailableMB = ramCounter.NextValue();
             statusStrip.Items.Add("CPU: " + Math.Round(cpuCounter.NextValue(), 1) + "%");
             statusStrip.Items.Add("RAM: " + Math.Round((ramTotalMB - ramAvailableMB) / ramTotalMB * 100, 1) + "%");
